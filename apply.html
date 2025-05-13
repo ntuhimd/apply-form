@@ -251,7 +251,7 @@
     }
 
     function sendToREDCap(selectedValues, record_id) {
-        const token = '9A3C29B5FC53C89BC62CE6896B595837'; // 請換成你的 REDCap token
+        const token = 'YOUR_API_TOKEN_HERE'; // 請換成你的 REDCap token
         const data = new FormData();
         data.append('token', token);
         data.append('content', 'record');
@@ -260,7 +260,7 @@
         data.append('data', JSON.stringify([
             {
                 record_id: record_id,
-                name_2: selectedValues.join('\n')
+                name_2: selectedValues.join(', ')
             }
         ]));
 
