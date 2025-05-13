@@ -201,16 +201,19 @@
     </div>
 
 
-    <button type="button" onclick="showSelections()">顯示申請項目</button>
+    
+<button type="button" onclick="showSelections()">顯示申請項目</button>
+<button type="button" onclick="submitToREDCap()" style="margin-left:10px;background-color:#28a745;color:white;border:none;border-radius:6px;padding:10px 20px;">填寫完成</button>
+
 </form>
 
 <div id="result"></div>
+
 
 <script>
     function toggleSubOptions(subId, titleDiv) {
         const subDiv = document.getElementById(subId);
         subDiv.classList.toggle('open');
-
         const arrow = titleDiv.querySelector('.arrow');
         arrow.classList.toggle('rotate');
     }
@@ -218,7 +221,6 @@
     function showSelections() {
         const checkboxes = document.querySelectorAll('input[name="option"]:checked');
         const selected = Array.from(checkboxes).map(cb => cb.value);
-
         const resultDiv = document.getElementById('result');
         if (selected.length > 0) {
             resultDiv.innerHTML = "<h2>醫整中心所需參數：</h2><ul>" +
@@ -228,7 +230,57 @@
             resultDiv.innerHTML = "<p>您尚未勾選任何項目。</p>";
         }
     }
-</script>
 
+    function submitToREDCap() {
+        const checkboxes = document.querySelectorAll('input[name="option"]:checked');
+        const selected = Array.from(checkboxes).map(cb => cb.value);
+        const resultDiv = document.getElementById('result');
+
+        if (selected.length === 0) {
+            alert("請先勾選至少一個項目！");
+            return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const record_id = urlParams.get('record_id');
+
+        if (!record_id) {
+            alert("無法取得 record_id，請確認從 REDCap 正確傳遞 URL！");
+            return;
+        }
+
+        resultDiv.innerHTML = "<h2>已送出以下項目：</h2><ul>" +
+            selected.map(item => `<li>${item}</li>`).join('') + "</ul>";
+
+        sendToREDCap(selected, record_id);
+    }
+
+    function sendToREDCap(selectedValues, record_id) {
+        const token = '9A3C29B5FC53C89BC62CE6896B595837';  // 測試 token，正式部署請更換
+        const data = new FormData();
+        data.append('token', token);
+        data.append('content', 'record');
+        data.append('format', 'json');
+        data.append('type', 'flat');
+        data.append('data', JSON.stringify([
+            {
+                record_id: record_id,
+                name_2: selectedValues.join(', ')
+            }
+        ]));
+
+        fetch('https://redcap.ntuh.gov.tw/api/', {
+            method: 'POST',
+            body: data
+        })
+        .then(response => response.json())
+        .then(result => {
+            alert('成功送出至 REDCap：' + JSON.stringify(result));
+        })
+        .catch(error => {
+            alert('傳送失敗：' + error);
+        });
+    }
+</script>
 </body>
 </html>
